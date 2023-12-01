@@ -1,17 +1,42 @@
+import torch
 import torch.nn as nn
 
 class FullyConnectedNetwork(nn.Module):
-    def __init__(self, input_size, hidden_size, output_size):
+    def __init__(self, *layer_sizes):
         super(FullyConnectedNetwork, self).__init__()
 
         self.flatten = nn.Flatten()
-        self.fc1 = nn.Linear(input_size, hidden_size)
-        self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_size, output_size)
+        self.layers = []
+        self.linear_layers = []
+        for i in range(len(layer_sizes)-1):
+            linear = nn.Linear(layer_sizes[i], layer_sizes[i+1])
+            self.layers.append(linear)
+            self.linear_layers.append(linear)
+            self.layers.append(nn.ReLU())
+        self.layers.pop()
+        self.layers = nn.ModuleList(self.layers)
 
     def forward(self, x):
         x = self.flatten(x)
-        x = self.fc1(x)
-        x = self.relu(x)
-        x = self.fc2(x)
+        for layer in self.layers:
+            x = layer(x)
         return x
+
+class ConvolutionalRegularizer(nn.Module):
+    def __init__(self, net, alpha=1):
+        super(ConvolutionalRegularizer, self).__init__()
+        self.net = net
+        self.alpha = alpha
+        self.A_matrices = nn.ParameterList()
+        for linear in net.linear_layers:
+            A = torch.zeros(linear.weight.shape[1], linear.weight.shape[1])
+            for i in range(A.shape[0]):
+                for j in range(A.shape[0]):
+                    A[i][j] = (i - j) ** 2
+            self.A_matrices.append(nn.Parameter(A, requires_grad=False))
+
+    def forward(self):
+        loss = torch.tensor(0.0, requires_grad=True).to(self.net.layers[0].weight.device)
+        for layer, A in zip(self.net.linear_layers, self.A_matrices):
+            loss = loss + torch.einsum("ij, ik, jk -> ", layer.weight**2, layer.weight**2, A)
+        return self.alpha * loss
