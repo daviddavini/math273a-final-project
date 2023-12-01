@@ -21,8 +21,8 @@ best_acc = 0  # best test accuracy
 # Data
 print('==> Preparing data..')
 # Generate random input/output vector pairs
-INPUT_SIZE = 32
-OUTPUT_SIZE = 32
+INPUT_SIZE = 100
+OUTPUT_SIZE = 100
 TRAIN_SIZE = 1000
 TEST_SIZE = 100
 x_train = torch.randn(TRAIN_SIZE, INPUT_SIZE)
@@ -56,21 +56,33 @@ scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 def plot_weights(net, epoch):
     W = net.layers[0].weight
     W = W.detach().cpu().numpy()
-    plot_matrix(W, "Weight matrix at epoch %d" % epoch, "weights_epoch_%d.png" % epoch)
+    row_order = plot_matrix(W, "Weight matrix at epoch %d" % epoch, "weights_epoch_%d.png" % epoch)
+    return row_order
 
-def plot_matrix(M, title, filename):
-    # for each row, compute the weighted average of the indices, weighted by the values
-    X = np.arange(M.shape[1])
-    A = np.einsum("ij, j -> ij", np.abs(M), X) 
-    B = np.sum(np.abs(M), axis=1)
-    avg_indices = np.einsum("ij, i -> i", A, 1/B)
-    M = M[np.argsort(avg_indices)]
+def plot_matrix(M, title, filename, row_order=None):
+    if row_order is not None:
+        M = M[row_order]
+    else:
+        # for each row, compute the weighted average of the indices, weighted by the values
+        X = np.arange(M.shape[1])
+        A = np.einsum("ij, j -> ij", np.abs(M), X) 
+        B = np.sum(np.abs(M), axis=1)
+        avg_indices = np.einsum("ij, i -> i", A, 1/B)
+        row_order = np.argsort(avg_indices)
+        M = M[row_order]
 
     plt.imshow(M, interpolation='nearest', aspect='auto')
     plt.colorbar()
     plt.title(title)
     plt.savefig(filename, dpi=100)
     plt.clf()
+    return row_order
+
+def plot_loss(train_losses, test_losses):
+    plt.plot(train_losses, label='train')
+    plt.plot(test_losses, label='test')
+    plt.legend()
+    plt.savefig('loss.png', dpi=100)
 
 # Training
 def train(epoch):
@@ -121,9 +133,6 @@ for epoch in range(200):
     loss = test(epoch)
     test_losses.append(loss)
     scheduler.step()
-plot_weights(net, 199)
-plot_matrix(A, "True weight matrix", "true_weights.png")
-plt.plot(train_losses, label='train')
-plt.plot(test_losses, label='test')
-plt.legend()
-plt.savefig('loss.png', dpi=100)
+row_order = plot_weights(net, 199)
+plot_matrix(A.numpy(), "True weight matrix", "true_weights.png", row_order=row_order)
+plot_loss(train_losses, test_losses)
