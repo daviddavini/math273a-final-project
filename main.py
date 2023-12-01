@@ -4,9 +4,6 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.backends.cudnn as cudnn
 
-import torchvision
-import torchvision.transforms as transforms
-
 import argparse
 
 from net import ConvolutionalRegularizer, FullyConnectedNetwork
@@ -58,10 +55,13 @@ scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 def plot_weights(net, epoch):
     W = net.layers[0].weight
     W = W.detach().cpu().numpy()
-    plt.imshow(W, interpolation='nearest', aspect='auto')
+    plot_matrix(W, "Weight matrix at epoch %d" % epoch, "weights_epoch_%d.png" % epoch)
+
+def plot_matrix(M, title, filename):
+    plt.imshow(M, interpolation='nearest', aspect='auto')
     plt.colorbar()
-    plt.title('Weight matrix at epoch %d' % epoch)
-    plt.savefig('weight_epoch_%d.png' % epoch, dpi=100)
+    plt.title(title)
+    plt.savefig(filename, dpi=100)
     plt.clf()
 
 # Training
@@ -114,6 +114,7 @@ for epoch in range(200):
     test_losses.append(loss)
     scheduler.step()
 plot_weights(net, 199)
+plot_matrix(A, "True weight matrix", "true_weights.png")
 plt.plot(train_losses, label='train')
 plt.plot(test_losses, label='test')
 plt.legend()
