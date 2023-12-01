@@ -40,7 +40,7 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False,
 
 # Model
 print('==> Building model..')
-net = FullyConnectedNetwork(INPUT_SIZE, OUTPUT_SIZE)
+net = FullyConnectedNetwork(INPUT_SIZE, OUTPUT_SIZE, OUTPUT_SIZE)
 net = net.to(device)
 if device == 'cuda':
     net = torch.nn.DataParallel(net)
@@ -54,10 +54,14 @@ optimizer = optim.Adam(net.parameters(), lr=args.lr)
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 
 def plot_weights(net, epoch):
-    W = net.layers[0].weight
-    W = W.detach().cpu().numpy()
-    row_order = plot_matrix(W, "Weight matrix at epoch %d" % epoch, "weights_epoch_%d.png" % epoch)
-    return row_order
+    print(net.linear_layers)
+    row_orders = []
+    for i, layer in enumerate(net.linear_layers):
+        W = layer.weight
+        W = W.detach().cpu().numpy()
+        row_order = plot_matrix(W, "Weight matrix at epoch %d" % epoch, "weights_layer_%d_epoch_%d.png" % (i, epoch))
+        row_orders.append(row_order)
+    return row_orders
 
 def plot_matrix(M, title, filename, row_order=None):
     if row_order is not None:
@@ -71,7 +75,7 @@ def plot_matrix(M, title, filename, row_order=None):
         row_order = np.argsort(avg_indices)
         M = M[row_order]
 
-    plt.imshow(M, interpolation='nearest', aspect='auto')
+    plt.imshow(np.abs(M), interpolation='nearest', aspect='auto')
     plt.colorbar()
     plt.title(title)
     plt.savefig(filename, dpi=100)
@@ -133,6 +137,6 @@ for epoch in range(200):
     loss = test(epoch)
     test_losses.append(loss)
     scheduler.step()
-row_order = plot_weights(net, 199)
-plot_matrix(A.numpy(), "True weight matrix", "true_weights.png", row_order=row_order)
+row_orders = plot_weights(net, 199)
+plot_matrix(A.numpy(), "True weight matrix", "true_weights.png") #TODO: fix use row order
 plot_loss(train_losses, test_losses)
