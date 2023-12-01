@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -46,7 +47,7 @@ if device == 'cuda':
     cudnn.benchmark = True
     
 criterion = nn.MSELoss()
-# regularizer = ConvolutionalRegularizer(net)
+regularizer = ConvolutionalRegularizer(net, alpha=1e-4)
 # optimizer = optim.SGD(net.parameters(), lr=args.lr,
                     # momentum=0.9, weight_decay=5e-4)
 optimizer = optim.Adam(net.parameters(), lr=args.lr)
@@ -58,6 +59,13 @@ def plot_weights(net, epoch):
     plot_matrix(W, "Weight matrix at epoch %d" % epoch, "weights_epoch_%d.png" % epoch)
 
 def plot_matrix(M, title, filename):
+    # for each row, compute the weighted average of the indices, weighted by the values
+    X = np.arange(M.shape[1])
+    A = np.einsum("ij, j -> ij", np.abs(M), X) 
+    B = np.sum(np.abs(M), axis=1)
+    avg_indices = np.einsum("ij, i -> i", A, 1/B)
+    M = M[np.argsort(avg_indices)]
+
     plt.imshow(M, interpolation='nearest', aspect='auto')
     plt.colorbar()
     plt.title(title)
@@ -74,7 +82,7 @@ def train(epoch):
         inputs, targets = inputs.to(device), targets.to(device)
         optimizer.zero_grad()
         outputs = net(inputs)
-        loss = criterion(outputs, targets) #+ regularizer()
+        loss = criterion(outputs, targets) + regularizer()
         loss.backward()
         optimizer.step()
 
