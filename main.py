@@ -47,7 +47,7 @@ if device == 'cuda':
     cudnn.benchmark = True
     
 criterion = nn.MSELoss()
-regularizer = ConvolutionalRegularizer(net, alpha=1e-4)
+regularizer = ConvolutionalRegularizer(net, kernel_length=5, alpha=1e-4)
 # optimizer = optim.SGD(net.parameters(), lr=args.lr,
                     # momentum=0.9, weight_decay=5e-4)
 optimizer = optim.Adam(net.parameters(), lr=args.lr)
