@@ -1,0 +1,60 @@
+ask: can you actually fit the datat if you make the regulariztion stronger?
+plot final error on alpha - m plot
+(how does hidden layer size affect error, how does regularizer weight affect error)
+
+is there a choice of x and y st you don't need the regularizer,
+MSE x y acts as the regularizer
+which data forces it to be convolutional?
+
+linear regression solution, when does it intersect set of all convolutional matrices
+"GREAT QUESTION"
+finding X Y st W is convolutional is another optimization problem
+quadratic optimization problem in entries of y
+good question: check when H is positive semidefinite
+write down first-order optimality conditions for x, see what happens
+question: what is the range of possible values of XT (X XT)^-1 ?
+matrix polynomial equations (not quite, becuase of the inverse)
+you could write the inverse of the matrix in terms of adjugate / determinant
+entries of inverse matrix will be rational function of entries of original matrix
+
+its a quadratic prob, you can study it,
+write down first order necessary conditions, by computing the gradient
+(use the matrix product formulas for XT X thingy)
+this gives you a critical point
+this will be a constrained optimization problem
+study this
+should find a necessary condition
+
+question: is the matrix X fat or tall? depending on that, the behavior might be different
+consider both overdeterimined and underdetermined least squares linear regression
+
+you can try this min Y X min Z problem computationally
+using gradient descent
+plot it, see if you have interesting structure (or somehow analyze it)
+
+one idea: if the data has symmetries (eg. shift rotation),
+that could be a structure that is conducive to producing convolutional matrices
+sort columns and try to identify eg. if they are rotated versions of eachother
+
+"to him ", his view of this problem is: what kind of problems are convolutional networks good for
+eg. what kind of datasets would naturally lead to finding a convolutional network
+different than saying eg. I "want" to get a convolutional network
+want to get a conv network depending on the data
+teacher generates data, if teacher is convolutional it will hopefully generate data that makes the student convolutional
+"this is an underdetermined problem"
+when you train another network, you might end up obtaining another network that is not convolutional
+does that happen? if so, that means there is no data by itself that leads you to a convolutional matrix
+an entire family of matrices that solves it equally well
+experiment: generate data with teacher, fit the student
+"matrix recovery problem" 
+up to trivial symmetry, can you obtain convolutional? (eg permute rows of student)
+there are trivial symmetries, and you SHOULD discount those
+
+experiment: run minimization numerically, and also for nonlinear networks
+nonlinear symmetry: can you identify the symmetries
+have a chapter about symmetries
+
+section 1: motivation
+section 2, 3 "each question merits a section"
+better to add more details than too little most of the time (in the paper) eg. notation etc.
+10 ish pages is reasonable
