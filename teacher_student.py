@@ -1,4 +1,3 @@
-import os
 import torch
 from torch.nn.functional import mse_loss
 from net import fully_connected_net, random_conv_net
