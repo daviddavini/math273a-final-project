@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+from matrices import convolutional_matrix
+
 class FullyConnectedNetwork(nn.Module):
     def __init__(self, *layer_sizes):
         super(FullyConnectedNetwork, self).__init__()
@@ -21,6 +23,23 @@ class FullyConnectedNetwork(nn.Module):
         for layer in self.layers:
             x = layer(x)
         return x
+    
+def conv_net(width, kernels):
+    layer_sizes = [width] * (len(kernels)+1)
+    net = FullyConnectedNetwork(*layer_sizes)
+    with torch.no_grad():
+        for kernel, linear in zip(kernels, net.linear_layers):
+            weight = convolutional_matrix(kernel, width)
+            linear.weight.copy_(weight)
+            linear.bias.zero_()
+    return net
+
+def random_conv_net(width, kernel_size, depth):
+    return conv_net(width, [torch.randn(kernel_size) for _ in range(depth)])
+
+def fully_connected_net(width, depth):
+    layer_sizes = [width] * (depth+1)
+    return FullyConnectedNetwork(*layer_sizes)
 
 class ConvolutionalRegularizer(nn.Module):
     def __init__(self, net, kernel_length, alpha):
