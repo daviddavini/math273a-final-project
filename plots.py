@@ -1,16 +1,27 @@
 import os
 from matplotlib import pyplot as plt
 
+def make_title(title, suffix):
+    if suffix:
+        title += " ({})".format(suffix)
+    return title
+
+def make_filename(name, suffix):
+    filename = name
+    if suffix:
+        filename += "_{}".format(suffix)
+    filename += ".png"
+    return filename
 
 def plot_weights(net, name, suffix, save_dir):
     for i, layer in enumerate(net.linear_layers, 1):
-        title = "Weight matrix for layer {} ({})".format(i, suffix)
-        filename = "{}_layer_{}_{}.png".format(name, i, suffix)
+        title = make_title("Weight matrix for layer {}".format(i), suffix)
+        filename = make_filename("{}_layer_{}".format(name, i), suffix)
         plot_matrix(layer.weight, title, filename, save_dir)
 
 def plot_data(X, name, suffix, save_dir):
-    title = "{} data ({})".format(name, suffix)
-    filename = "{}_{}.png".format(name, suffix)
+    title = make_title("{} data".format(name), suffix)
+    filename = make_filename(name, suffix)
     plot_matrix(X, title, filename, save_dir)
 
 def plot_matrix(M, title, filename, save_dir):
