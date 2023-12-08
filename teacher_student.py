@@ -9,11 +9,12 @@ SAVE_DIR = "images/teacher_student/latest"
 setup_save_dir(SAVE_DIR)
 
 LEARNING_RATE = 1e-2
-NUM_EPOCHS = 3000
-NUM_DATA = 300
+NUM_EPOCHS = int(1e3)
+NUM_DATA = int(1e6)
 NET_WIDTH = 100
 NET_DEPTH = 2
 KERNEL_SIZE = 10
+REGENERATE_DATA = False
 
 save_constants({
     "LEARNING_RATE": LEARNING_RATE,
@@ -32,12 +33,16 @@ student = fully_connected_net(NET_WIDTH, NET_DEPTH)
 optimizer = torch.optim.Adam(student.parameters(), lr=LEARNING_RATE)
 
 plot_weights(student, "student_weights", "start", SAVE_DIR)
-plot_weights(teacher, "teacher_weights", "start", SAVE_DIR)
+plot_weights(teacher, "teacher_weights", None, SAVE_DIR)
+
+X = torch.randn(NUM_DATA, NET_WIDTH)
+Y = teacher(X)
 
 losses = []
 for epoch in range(NUM_EPOCHS):
-    X = torch.randn(NUM_DATA, NET_WIDTH)
-    Y = teacher(X)
+    if REGENERATE_DATA:
+        X = torch.randn(NUM_DATA, NET_WIDTH)
+        Y = teacher(X)
     optimizer.zero_grad()
     loss = mse_loss(student(X), Y)
     losses.append(loss.item())
@@ -47,7 +52,6 @@ for epoch in range(NUM_EPOCHS):
 
 plot_loss(losses, SAVE_DIR)
 plot_weights(student, "student_weights", "end", SAVE_DIR)
-plot_weights(teacher, "teacher_weights", "end", SAVE_DIR)
 
 with torch.no_grad():
     sort_hidden_nodes_convolutionally(student, KERNEL_SIZE)
