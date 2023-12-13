@@ -9,8 +9,8 @@ SAVE_DIR = "images/teacher_student/latest"
 setup_save_dir(SAVE_DIR)
 
 LEARNING_RATE = 1e-2
-NUM_EPOCHS = int(1e3)
-NUM_DATA = int(1e6)
+NUM_EPOCHS = int(3e3)
+NUM_DATA = int(1e3)
 NET_WIDTH = 100
 NET_DEPTH = 2
 KERNEL_SIZE = 10
