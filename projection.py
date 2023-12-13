@@ -1,20 +1,20 @@
 # Goal: Learn X that creates a convolutional W in linear regression setting
 import torch
-from matrices import checkered_matrix, line_matrix, random_convolutional_matrix, sinusoid_matrix
+from matrices import checkered_matrix, line_matrix, random_convolutional_matrix, sinusoid_matrix, convolutional_matrix
 from plots import plot_data, plot_loss
 from utils import save_constants, setup_save_dir
 
 SAVE_DIR = "images/projection/latest"
 setup_save_dir(SAVE_DIR)
 
-LEARNING_RATE = 1e-3
-NUM_EPOCHS = 10000
+LEARNING_RATE = 1e-2
+NUM_EPOCHS = int(1e5)
 NUM_DATA = 100
 NET_WIDTH = 100
 KERNEL_SIZE = 10
 TARGET_MEAN_SQUARE = 10
-ZERO_WEIGHT = 1
-OFF_DIAGONAL_WEIGHT = 0
+ZERO_PENALTY_WEIGHT = 1
+KERNEL_DIAGONAL_WEIGHT = 0
 
 save_constants({
     "LEARNING_RATE": LEARNING_RATE,
@@ -35,11 +35,8 @@ Y = Y_preimage @ W
 optimizer = torch.optim.Adam([X], lr=LEARNING_RATE)
 # scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=NUM_EPOCHS // 2)
 
-A = torch.zeros(NET_WIDTH, NET_WIDTH)
-for i in range(A.shape[0]):
-    for j in range(A.shape[1]):
-        if j >= i and j < i + KERNEL_SIZE:
-            A[i][j] = 1.0
+kernel = torch.ones(KERNEL_SIZE)
+conv_mask = convolutional_matrix(kernel, NET_WIDTH)
 
 def solve_linear_regression(X, Y):
     '''
@@ -52,12 +49,12 @@ def solve_linear_regression(X, Y):
     # W, _ = torch.solve(X.T @ Y, X.T @ X)
     # return W
 
-def conv_loss(W, zero_weight, off_diagonal_weight):
-    zeros_penalty = ((W * (1 - A)) ** 2).mean() / 2
-    off_diagonal_penalty = torch.tensor(0)
+def conv_loss(W, zero_penalty_weight, kernel_penalty_weight):
+    zeros_penalty = ((W * (1 - conv_mask)) ** 2).mean() / 2
+    kernel_penalty = torch.tensor(0)
     for i in range(KERNEL_SIZE):
-        off_diagonal_penalty = off_diagonal_penalty + torch.var(torch.diag(W, diagonal=i))
-    return zeros_penalty * zero_weight + off_diagonal_penalty * off_diagonal_weight
+        kernel_penalty = kernel_penalty + torch.var(torch.diag(W, diagonal=i))
+    return zeros_penalty * zero_penalty_weight + kernel_penalty * kernel_penalty_weight
 
 plot_data(Y, "Y", None, SAVE_DIR)
 plot_data(X, "X", "start", SAVE_DIR)
@@ -69,11 +66,11 @@ for epoch in range(NUM_EPOCHS):
     optimizer.zero_grad()
     W_star = solve_linear_regression(X, Y)
     # loss = ((Y - X @ W_star) ** 2).mean() / 2
-    loss = conv_loss(W_star, ZERO_WEIGHT, OFF_DIAGONAL_WEIGHT)
-    loss = loss + torch.relu(TARGET_MEAN_SQUARE - (W_star ** 2).mean())
+    loss = conv_loss(W_star, ZERO_PENALTY_WEIGHT, KERNEL_DIAGONAL_WEIGHT)
+    # loss = loss + torch.relu(TARGET_MEAN_SQUARE - (W_star ** 2).mean())
     losses.append(loss.item())
     loss.backward()
-    torch.nn.utils.clip_grad_norm_([X], 1e-1)
+    # torch.nn.utils.clip_grad_norm_([X], 1e-1)
     optimizer.step()
     # scheduler.step()
     print('Epoch: {}, Loss: {:.5e}'.format(epoch, loss))
