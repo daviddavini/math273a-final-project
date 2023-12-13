@@ -28,8 +28,9 @@ def plot_matrix(M, title, filename, save_dir):
     M = M.detach().cpu().numpy()
     plt.imshow(M, interpolation='nearest', aspect='auto')
     plt.colorbar()
-    plt.title(title)
-    plt.savefig(os.path.join(save_dir, filename))
+    # Exclude titles from paper plots
+    # plt.title(title)
+    plt.savefig(os.path.join(save_dir, filename),bbox_inches='tight')
     plt.clf()
 
 def plot_loss(train_losses, save_dir):
@@ -37,5 +38,5 @@ def plot_loss(train_losses, save_dir):
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.title("Loss over time")
-    plt.savefig(os.path.join(save_dir, 'loss.svg'))
+    plt.savefig(os.path.join(save_dir, 'loss.svg'),bbox_inches='tight')
     plt.clf()
