@@ -12,7 +12,8 @@ def checkered_matrix(m, n):
 def sinusoid_matrix(frequency, m, n):
     M = torch.zeros(m, n)
     for i in range(m):
-        M[i][int((n//2 - 1) * math.sin(2 * math.pi * frequency * i / n)) + n//2] = 1.0
+        j = int(n/2 * math.sin(2 * math.pi * frequency * i / n) + n/2)
+        M[i][j % n] = 1.0
     return M
 
 def line_matrix(slope, m, n):
