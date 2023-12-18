@@ -8,9 +8,9 @@ from utils import save_constants, setup_save_dir
 SAVE_DIR = "images/teacher_student/latest"
 setup_save_dir(SAVE_DIR)
 
-LEARNING_RATE = 1e-2
-NUM_EPOCHS = int(3e3)
-NUM_DATA = int(1e3)
+LEARNING_RATE = 0.01
+NUM_EPOCHS = 3000
+NUM_DATA = 1000
 NET_WIDTH = 100
 NET_DEPTH = 2
 KERNEL_SIZE = 10
@@ -22,7 +22,8 @@ save_constants({
     "NUM_DATA": NUM_DATA,
     "NET_WIDTH": NET_WIDTH,
     "NET_DEPTH": NET_DEPTH,
-    "KERNEL_SIZE": KERNEL_SIZE
+    "KERNEL_SIZE": KERNEL_SIZE,
+    "REGENERATE_DATA": REGENERATE_DATA
 }, SAVE_DIR)
 
 teacher = random_conv_net(NET_WIDTH, KERNEL_SIZE, NET_DEPTH)
